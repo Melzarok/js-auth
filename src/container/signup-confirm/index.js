@@ -1,22 +1,18 @@
+import { Form } from '../../script/form'
+
 import {
-  Form,
-  REG_EXP_EMAIL,
-  REG_EXP_PASSWORD,
-} from '../../script/form'
+  saveSession,
+  getTokenSession,
+  getSession,
+} from '../../script/session'
 
-import { saveSession } from '../../script/session'
-
-class RecoveryConfirmForm extends Form {
+class SignupConfirmForm extends Form {
   FIELD_NAME = {
     CODE: 'code',
-    PASSWORD: 'password',
-    PASSWORD_AGAIN: 'passwordAgain',
   }
   FIELD_ERROR = {
     IS_EMPTY: 'Введіть значення в поле',
     IS_BIG: 'Дуже довге значення',
-    PASSWORD: 'Пароль не повинен бути менш ніж 8 символів',
-    PASSWORD_AGAIN: 'Пароль не збігається',
   }
 
   validate = (name, value) => {
@@ -24,21 +20,6 @@ class RecoveryConfirmForm extends Form {
       return this.FIELD_ERROR.IS_EMPTY
     } else if (String(value).length > 20) {
       return this.FIELD_ERROR.IS_BIG
-    }
-
-    if (name === this.FIELD_NAME.PASSWORD) {
-      if (!REG_EXP_PASSWORD.test(String(value))) {
-        return this.FIELD_ERROR.PASSWORD
-      }
-    }
-
-    if (name === this.FIELD_NAME.PASSWORD_AGAIN) {
-      if (
-        String(value) !==
-        this.value[this.FIELD_NAME.PASSWORD]
-      ) {
-        return this.FIELD_ERROR.PASSWORD_AGAIN
-      }
     }
   }
 
@@ -50,7 +31,7 @@ class RecoveryConfirmForm extends Form {
       this.setAlert('progress', 'Завантаження...')
 
       try {
-        const res = await fetch('/recovery-confirm', {
+        const res = await fetch('/signup-confirm', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -63,7 +44,7 @@ class RecoveryConfirmForm extends Form {
         if (res.ok) {
           this.setAlert('success', data.message)
           saveSession(data.session)
-          location.assign('/signup')
+          location.assign('/')
         } else {
           this.setAlert('error', data.message)
         }
@@ -78,10 +59,32 @@ class RecoveryConfirmForm extends Form {
       [this.FIELD_NAME.CODE]: Number(
         this.value[this.FIELD_NAME.CODE],
       ),
-      [this.FIELD_NAME.PASSWORD]:
-        this.value[this.FIELD_NAME.PASSWORD],
+      token: getTokenSession(),
     })
   }
 }
 
-window.recoveryConfirmForm = new RecoveryConfirmForm()
+window.signupConfirmForm = new SignupConfirmForm()
+
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    if (window.session) {
+      if (window.session.user.isConfirm) {
+        location.assign('/')
+      }
+    } else {
+      location.assign('/')
+    }
+  } catch (e) {}
+  document
+    .querySelector('.link#renew')
+    .addEventListener('click', (e) => {
+      e.preventDefault()
+
+      const session = getSession()
+
+      location.assign(
+        `/signup-confirm?renew=true&email=${session.user.email}`,
+      )
+    })
+})
