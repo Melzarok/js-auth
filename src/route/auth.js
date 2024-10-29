@@ -13,6 +13,18 @@ User.create({
   role: 1,
 })
 
+User.create({
+  email: 'test2@mail.com',
+  password: 123,
+  role: 2,
+})
+
+User.create({
+  email: 'test3@mail.com',
+  password: 123,
+  role: 3,
+})
+
 // ================================================================
 
 router.get('/signup', function (req, res) {
@@ -333,6 +345,8 @@ router.post('/login', function (req, res) {
     })
   }
 })
+
+
 
 // Підключаємо роутер до бек-енду
 module.exports = router
